@@ -76,7 +76,7 @@ jobs:
   contracts:
     name: Smart Contracts (Rust)
     runs-on: ubuntu-latest
-    container: rust:1.85
+    container: rust:1.88
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
