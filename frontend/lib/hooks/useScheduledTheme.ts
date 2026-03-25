@@ -5,7 +5,7 @@ import { useThemeStore } from '@/store/useThemeStore';
 import { getSunTimes } from '@/lib/theme/sunriseSunset';
 
 /** Duration (ms) to pre-enable CSS transition before toggling the class. */
-const TRANSITION_PREP_MS = 50;
+//const TRANSITION_PREP_MS = 50;
 
 function applyDark(isDark: boolean) {
   const root = document.documentElement;
