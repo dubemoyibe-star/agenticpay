@@ -7,8 +7,13 @@ export interface VerificationRequest {
 }
 
 export interface VerificationResponse {
-    verified: boolean;
-    reason?: string;
+    id: string;
+    projectId: string;
+    status: 'passed' | 'failed' | 'pending';
+    score: number;
+    summary: string;
+    details: string[];
+    verifiedAt: string;
 }
 
 export interface InvoiceRequest {

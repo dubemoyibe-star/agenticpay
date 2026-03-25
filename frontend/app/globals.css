@@ -47,6 +47,10 @@
 }
 
 :root {
+  --font-geist-sans:
+    "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-geist-mono:
+    "SFMono-Regular", "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --radius: 0.75rem;
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.145 0 0);

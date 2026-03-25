@@ -150,6 +150,7 @@ impl AgenticPayContract {
                 github_repo: input.github_repo,
                 description: input.description,
                 created_at: timestamp,
+                deadline: 0,
             };
 
             env.storage()

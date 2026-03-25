@@ -191,7 +191,7 @@ export default function ProjectDetailPage() {
                         milestoneDescription: project.milestones[0]?.description || project.title,
                         projectId: project.id
                       });
-                      if (verification.verified) {
+                      if (verification.status === 'passed') {
                         toast.success("Work Verified by AI!");
                         try {
                           // Trigger invoice gen
@@ -207,7 +207,7 @@ export default function ProjectDetailPage() {
                           toast.error("Invoice error: " + (invError as Error).message);
                         }
                       } else {
-                        toast.error("Verification failed: " + verification.reason);
+                        toast.error("Verification failed: " + verification.summary);
                       }
                     } catch (e) {
                       toast.error((e as Error).message);

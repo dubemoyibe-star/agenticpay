@@ -8,6 +8,16 @@ const HORIZON_URL =
 
 export const server = new StellarSdk.Horizon.Server(HORIZON_URL);
 
+export class ValidationError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 400) {
+    super(message);
+    this.name = 'ValidationError';
+    this.statusCode = statusCode;
+  }
+}
+
 export function isValidStellarAddress(address: string) {
   if (!address?.trim()) {
     return false;
@@ -22,6 +32,30 @@ export function isValidTransactionHash(hash: string) {
   }
 
   return /^[A-Fa-f0-9]{64}$/.test(hash);
+}
+
+export function validateStellarAddress(address: string): string {
+  if (!address?.trim()) {
+    throw new ValidationError('Stellar address must not be empty');
+  }
+
+  if (!isValidStellarAddress(address)) {
+    throw new ValidationError('Invalid Stellar address');
+  }
+
+  return address;
+}
+
+export function validateTransactionHash(hash: string): string {
+  if (!hash?.trim()) {
+    throw new ValidationError('Transaction hash must not be empty');
+  }
+
+  if (!isValidTransactionHash(hash)) {
+    throw new ValidationError('Invalid transaction hash');
+  }
+
+  return hash;
 }
 
 export async function getAccountInfo(address: string) {

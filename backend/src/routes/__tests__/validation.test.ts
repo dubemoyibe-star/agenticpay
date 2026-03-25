@@ -1,13 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { invoiceRouter } from '../invoice.js';
 import { verificationRouter } from '../verification.js';
-import { Request, Response } from 'express';
+import { Request, Response, Router, RequestHandler } from 'express';
 
 describe('Schema Validation', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let resJson: any;
   let resStatus: any;
+
+  const getNamedRouteHandler = (router: Router, path: string, name: string): RequestHandler => {
+    const routeLayer = router.stack.find((entry) => entry.route?.path === path);
+    const handler = routeLayer?.route?.stack.find((entry) => entry.name === name)?.handle;
+
+    if (!handler) {
+      throw new Error(`Route handler not found for ${path}:${name}`);
+    }
+
+    return handler;
+  };
 
   beforeEach(() => {
     resJson = vi.fn();
@@ -21,8 +32,8 @@ describe('Schema Validation', () => {
   describe('Invoice Validation', () => {
     it('returns 400 when projectId is missing', async () => {
       mockReq.body = { workDescription: 'Test' };
-      const handler = (invoiceRouter.stack.find(s => s.route?.path === '/generate')?.route.stack.find((s: any) => s.name === 'validateMiddleware')?.handle);
-      
+      const handler = getNamedRouteHandler(invoiceRouter, '/generate', 'validateMiddleware');
+
       await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(400);
@@ -42,8 +53,8 @@ describe('Schema Validation', () => {
         milestoneDescription: 'Test',
         projectId: 'P1'
       };
-      const handler = (verificationRouter.stack.find(s => s.route?.path === '/verify')?.route.stack.find((s: any) => s.name === 'validateMiddleware')?.handle);
-      
+      const handler = getNamedRouteHandler(verificationRouter, '/verify', 'validateMiddleware');
+
       await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(400);
@@ -56,8 +67,12 @@ describe('Schema Validation', () => {
 
     it('returns 400 for empty bulk verification items', async () => {
       mockReq.body = { items: [] };
-      const handler = (verificationRouter.stack.find(s => s.route?.path === '/verify/batch')?.route.stack.find((s: any) => s.name === 'validateMiddleware')?.handle);
-      
+      const handler = getNamedRouteHandler(
+        verificationRouter,
+        '/verify/batch',
+        'validateMiddleware'
+      );
+
       await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(400);

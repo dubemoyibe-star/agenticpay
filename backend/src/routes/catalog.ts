@@ -1,14 +1,13 @@
 import { Router } from 'express';
 import { getCatalog } from '../services/catalog.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 export const catalogRouter = Router();
 
-catalogRouter.get('/', (req, res) => {
-  try {
+catalogRouter.get(
+  '/',
+  asyncHandler(async (_req, res) => {
     const catalog = getCatalog();
     res.json(catalog);
-  } catch (error) {
-    console.error('Catalog error:', error);
-    res.status(500).json({ message: 'Failed to fetch catalog' });
-  }
-});
+  })
+);

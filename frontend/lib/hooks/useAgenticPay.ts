@@ -98,12 +98,14 @@ export const useAgenticPay = () => {
         });
 
         const formattedProjects: Project[] = projectsData
-            ? projectsData.map((result: { status: string; result: unknown }) => {
-                if (result.status === 'success' && result.result) {
-                    return formatProjectData(result.result as RawProjectData);
-                }
-                return null;
-            }).filter((p): p is Project => p !== null)
+            ? projectsData
+                .map((result) => {
+                    if (result.status === 'success' && result.result) {
+                        return formatProjectData(result.result as RawProjectData);
+                    }
+                    return null;
+                })
+                .filter((project): project is Project => project !== null)
             : [];
 
         return { projects: formattedProjects, loading: loadingClient || loadingFreelancer || loadingDetails };
@@ -118,7 +120,11 @@ export const useAgenticPay = () => {
             query: { enabled: !!projectId }
         });
 
-        return { project: data ? formatProjectData(data) : null, loading: isLoading, refetch };
+        return {
+            project: data ? formatProjectData(data as RawProjectData) : null,
+            loading: isLoading,
+            refetch,
+        };
     };
 
 

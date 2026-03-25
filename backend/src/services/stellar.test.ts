@@ -9,7 +9,7 @@ describe('stellar validation', () => {
     it('accepts a valid Stellar public address', () => {
       expect(
         isValidStellarAddress(
-          'GCFX5VEQOTYNPI2D7Y4N4EJXXWQTH2QX4PQD3NQCV3K4M5JJFGBX7D7O'
+          'GDW3WVRSMOKORUSJE5FVATK4AGIMYONQJ2OQH4EARLBKZHWG4OYBI7M4'
         )
       ).toBe(true);
     });

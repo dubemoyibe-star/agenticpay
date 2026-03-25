@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { healthRouter } from '../health.js';
-import { Request, Response } from 'express';
+import { Request, Response, Router, RequestHandler } from 'express';
 import { server as stellarServer } from '../../services/stellar.js';
 import { getJobScheduler } from '../../jobs/index.js';
 
@@ -20,6 +20,17 @@ describe('Health Router', () => {
   let resJson: any;
   let resStatus: any;
 
+  const getRouteHandler = (router: Router, path: string): RequestHandler => {
+    const layer = router.stack.find((entry) => entry.route?.path === path);
+    const handler = layer?.route?.stack[0]?.handle;
+
+    if (!handler) {
+      throw new Error(`Route handler not found for ${path}`);
+    }
+
+    return handler;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     resJson = vi.fn();
@@ -32,13 +43,16 @@ describe('Health Router', () => {
 
   describe('GET /health', () => {
     it('returns 200 and healthy status when all dependencies are up', async () => {
-      vi.mocked(stellarServer.root).mockResolvedValue({} as any);
+      const mockedStellarRoot = vi.mocked(
+        (stellarServer as unknown as { root: () => Promise<unknown> }).root
+      );
+
+      mockedStellarRoot.mockResolvedValue({});
       vi.mocked(getJobScheduler).mockReturnValue({} as any);
       process.env.OPENAI_API_KEY = 'test-key';
 
-      // Access the private handler (for testing purposes in vitest)
-      const handler = (healthRouter.stack.find(s => s.route.path === '/health')?.route.stack[0].handle);
-      await handler(mockReq as Request, mockRes as Response);
+      const handler = getRouteHandler(healthRouter, '/health');
+      await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(200);
       expect(resJson).toHaveBeenCalledWith(expect.objectContaining({
@@ -52,13 +66,17 @@ describe('Health Router', () => {
     });
 
     it('returns 200 and degraded status when OpenAI is missing', async () => {
-      vi.mocked(stellarServer.root).mockResolvedValue({} as any);
+      const mockedStellarRoot = vi.mocked(
+        (stellarServer as unknown as { root: () => Promise<unknown> }).root
+      );
+
+      mockedStellarRoot.mockResolvedValue({});
       vi.mocked(getJobScheduler).mockReturnValue({} as any);
       const originalKey = process.env.OPENAI_API_KEY;
       delete process.env.OPENAI_API_KEY;
 
-      const handler = (healthRouter.stack.find(s => s.route.path === '/health')?.route.stack[0].handle);
-      await handler(mockReq as Request, mockRes as Response);
+      const handler = getRouteHandler(healthRouter, '/health');
+      await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(200);
       expect(resJson).toHaveBeenCalledWith(expect.objectContaining({
@@ -74,12 +92,16 @@ describe('Health Router', () => {
     });
 
     it('returns 503 and unhealthy status when Stellar Horizon is down', async () => {
-      vi.mocked(stellarServer.root).mockRejectedValue(new Error('Horizon Down'));
+      const mockedStellarRoot = vi.mocked(
+        (stellarServer as unknown as { root: () => Promise<unknown> }).root
+      );
+
+      mockedStellarRoot.mockRejectedValue(new Error('Horizon Down'));
       vi.mocked(getJobScheduler).mockReturnValue({} as any);
       process.env.OPENAI_API_KEY = 'test-key';
 
-      const handler = (healthRouter.stack.find(s => s.route.path === '/health')?.route.stack[0].handle);
-      await handler(mockReq as Request, mockRes as Response);
+      const handler = getRouteHandler(healthRouter, '/health');
+      await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(503);
       expect(resJson).toHaveBeenCalledWith(expect.objectContaining({
@@ -95,8 +117,8 @@ describe('Health Router', () => {
 
   describe('GET /ready', () => {
     it('returns 200 and ready status', async () => {
-      const handler = (healthRouter.stack.find(s => s.route.path === '/ready')?.route.stack[0].handle);
-      await handler(mockReq as Request, mockRes as Response);
+      const handler = getRouteHandler(healthRouter, '/ready');
+      await handler(mockReq as Request, mockRes as Response, vi.fn());
 
       expect(resStatus).toHaveBeenCalledWith(200);
       expect(resJson).toHaveBeenCalledWith(expect.objectContaining({
